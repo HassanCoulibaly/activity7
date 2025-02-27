@@ -10,18 +10,32 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool _darkMode = false;
+  bool _isDarkMode = false;  // Local state to manage dark mode
+
+  void toggleTheme(bool isOn) {
+    setState(() {
+      _isDarkMode = isOn;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: _darkMode ? ThemeData.dark() : ThemeData.light(),
-      home: FadingTextAnimation(),
+      theme: _isDarkMode ? ThemeData.dark() : ThemeData.light(),
+      home: FadingTextAnimation(
+        onThemeChanged: toggleTheme,
+        isDarkMode: _isDarkMode,  // Pass the current theme state down
+      ),
     );
   }
 }
 
 class FadingTextAnimation extends StatefulWidget {
+  final Function(bool) onThemeChanged;
+  final bool isDarkMode;
+
+  const FadingTextAnimation({Key? key, required this.onThemeChanged, required this.isDarkMode}) : super(key: key);
+
   @override
   _FadingTextAnimationState createState() => _FadingTextAnimationState();
 }
@@ -29,7 +43,6 @@ class FadingTextAnimation extends StatefulWidget {
 class _FadingTextAnimationState extends State<FadingTextAnimation> {
   bool _isVisible = true;
   bool _showFrame = false;
-  bool _darkMode = false;
 
   void toggleVisibility() {
     setState(() {
@@ -44,13 +57,8 @@ class _FadingTextAnimationState extends State<FadingTextAnimation> {
         title: Text('Fading Text Animation'),
         actions: <Widget>[
           Switch(
-            value: _darkMode,
-            onChanged: (value) {
-              setState(() {
-                _darkMode = value;
-                (context as Element).markNeedsBuild();  // Forces the parent widget to rebuild with the new theme.
-              });
-            },
+            value: widget.isDarkMode,  // Use local state to set the Switch value
+            onChanged: widget.onThemeChanged,
           ),
         ],
       ),
@@ -78,6 +86,7 @@ class _FadingTextAnimationState extends State<FadingTextAnimation> {
       ),
       bottomNavigationBar: BottomAppBar(
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Show Frame'),
             Switch(
@@ -89,7 +98,6 @@ class _FadingTextAnimationState extends State<FadingTextAnimation> {
               },
             ),
           ],
-          mainAxisAlignment: MainAxisAlignment.center,
         ),
       ),
     );
